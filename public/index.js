@@ -184,13 +184,13 @@ function convertDate(str) {
 	return dateLoc;
 }
 
-function getCar (carId){
+/*function getCar (carId){
 	return{
 		'model' : model (carId),
 		'PricePerDay' : pricePerDay(carId),
 		'PricePerKm' : pricePerKm(carId)
 	};
-};
+};*/
 
 function getDays(pickupDate, returnDate) {
 	var begin = convertDate(pickupDate).getTime();
@@ -200,7 +200,7 @@ function getDays(pickupDate, returnDate) {
 
 MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-funtion PricePerConducteur(rentals){
+/*function PricePerConducteur(rentals){
 	var j =0;
 	while(j<rentals.length)
 	{
@@ -220,9 +220,9 @@ funtion PricePerConducteur(rentals){
 		var priceK = pricePerKm(carId);
 		console.log(priceK);
 		var distance = rentals[j].distance;
-		consol.log(distance);
+		console.log(distance);
 	}
-}
+}*/
 
 function priceD(carId) {
    for(var i = 0; i < cars.length; i++) {
@@ -251,50 +251,40 @@ function priceD(carId) {
 	  {
      rentals[i].price = numberDays * priceD(rentals[i].carId) + rentals[i].distance * priceK(rentals[i].carId);
 	  }
-   }
+	}
    console.log(rentals[i].price); 
- }
+   }
  }
  
- 
- //Mes valeurs ne s'affichent pas dans ma console, j'ai essayé de décomposer la méthode pour voir si 
- //j'avais fait une erreur dans ma fonction auparavant mais je n'ai toujours rien
- function RentalPrice()
-{
-  for(var i = 0; i < rentals.length; i++)
-  {
-    numberDays = convertDate(rentals[i].returnDate).getTime() - convertDate(rentals[i].pickupDate).getTime();
-    numberD = (((numberDays /1000)/3600)/24) + 1;
-
-    for(var j=0; j < cars.length;j++)
-    {
-      if(rentals[i].carId == cars[j].id )
-      {
-        rentals[i].price = cars[j].pricePerDay * diff + cars[j].pricePerKm * rentals[i].distance;
-      }
-    }
-    console.log(rentals[i].price); 
-  }
-}
  
  //Exercice 2
  //rental price computation with new rules
  function newrentalprice() 
  {
-   var diffDays;
+   var numberDays;
    for(var i = 0; i < rentals.length; i++) 
    {
-     var prices = [priceD(rentals[i].carId), PriceK(rentals[i].carId)];
-     numberDays = GetDays(rentals[i].pickupDate, rentals[i].returnDate);
+     numberDays = getDays(rentals[i].pickupDate, rentals[i].returnDate);
+	 for(var j=0; j < cars.length;j++)
+    {
+      if(rentals[i].carId == cars[j].id )
+	  {
+		  rentals[i].price = cars[j].pricePerDay*numberDays + cars[j].pricePerKm*rentals[i].distance;
+	  
+	  }
+	}
+	 
      if (numberDays >= 10)
-       prices[0] = prices[0] * (1 - 0.5); 
+       rentals[i].price = rentals[i].price * (1 - 0.5); 
      else if ((numberDays >= 4) && (numberDays < 10))
-       prices[0] = prices[0] * (1 - 0.3);  
+       rentals[i].price = rentals[i].price * (1 - 0.3);  
      else if ((numberDays >= 1) && (numberDays < 4))
-       prices[0] = prices[0] * (1 - 0.1);  
- 
-     rentals[i].price = numberDays * prices[0] + rentals[i].distance * prices[1];
+       rentals[i].price = rentals[i].price * (1 - 0.1);  
+	
+	console.log(rentals[i].price); 
+    
    }
+   
  }
  
  
@@ -302,13 +292,17 @@ function priceD(carId) {
  //Compute the amount that belongs to the insurance, to the assistance and to drivy.
  function comm() 
  {
+   var numberDays;
    for(var i = 0; i < rentals.length; i++) 
-   {
-     var incentive = rentals[i].price * 0.3;
-     rentals[i].commission.insurance = incentive / 2;
-     rentals[i].commission.assistance = numberDays(rentals[i].returnDate, rentals[i].pickupDate);
-     rentals[i].commission.drivy = rentals[i].commission.insurance - rentals[i].commission.assistance;
+   {   
+
+	 numberDays = getDays(rentals[i].pickupDate, rentals[i].returnDate);
+     var commission = rentals[i].price * 0.3;
+     rentals[i].insurance = commission / 2;
+     rentals[i].assistance = 1 * numberDays;
+     rentals[i].drivy = commission - rentals[i].insurance - rentals[i].assistance;
    }
+   console.log(rentals[i].price);
  }
  
  
@@ -317,10 +311,12 @@ function priceD(carId) {
  
  function deducprice() 
  {
+   var numberDays;
    for(var i = 0; i < rentals.length; i++) 
    {
+	   numberDays = getDays(rentals[i].pickupDate, rentals[i].returnDate);
        if(rentals[i].options.deductibleReduction == true)
-         rentals[i].price = rentals[i].price + 4 * numberDays(rentals[i].returnDate, rentals[i].pickupDate);
+         rentals[i].price = rentals[i].price + 4 * numberDays
    }
  }
  
@@ -335,16 +331,20 @@ function priceD(carId) {
  
          
          for(var k = 0; k < actors[j].payment.length; k++) {
-           if(actors[j].payment[k].who == "driver")
-             actors[j].payment[k].amount = rentals[i].price;                                                       
+           if(actors[j].payment[k].who == "driver"){
+			   if(rentals[i].options.deductibleReduction == true){
+			   actors[j].payment[k].amount = rentals[i].price = rentals[i].price + 4 * numberDays}else{
+		   actors[j].payment[k].amount = rentals[i].price;  }  }                                                   
            if (actors[j].payment[k].who == "owner")
              actors[j].payment[k].amount = rentals[i].price * (1 - 0.3);
            if (actors[j].payment[k].who == "insurance")
-             actors[j].payment[k].amount = rentals[i].commission.insurance;
+             actors[j].payment[k].amount = rentals[i].insurance;
            if (actors[j].payment[k].who == "assistance")
-             actors[j].payment[k].amount = rentals[i].commission.assistance;
-           if (actors[j].payment[k].who == "drivy")
-             actors[j].payment[k].amount = rentals[i].commission.drivy;
+             actors[j].payment[k].amount = rentals[i].assistance;
+           if (actors[j].payment[k].who == "drivy"){
+			   if(rentals[i].options.deductibleReduction == true){
+			   actors[j].payment[k].amount = rentals[i].drivy + 4 * numberDays}else{
+		   actors[j].payment[k].amount = rentals[i].drivy;}}
          }
        }
      }
@@ -374,11 +374,11 @@ function priceD(carId) {
    for (var i = 0; i < rentalModifications.length; i++)
    {
      if (rentalModifications[i].pickupDate)
-       rentals[searchRental(rentalModifications[i].rentalId)].pickupDate = rentalModifications[i].pickupDate;
+       rentals[rentalsearch(rentalModifications[i].rentalId)].pickupDate = rentalModifications[i].pickupDate;
      if (rentalModifications[i].distance)
-       rentals[searchRental(rentalModifications[i].rentalId)].distance = rentalModifications[i].distance;
+       rentals[rentalsearch(rentalModifications[i].rentalId)].distance = rentalModifications[i].distance;
      if (rentalModifications[i].returnDate)
-       rentals[searchRental(rentalModifications[i].rentalId)].returnDate = rentalModifications[i].returnDate;
+       rentals[rentalsearch(rentalModifications[i].rentalId)].returnDate = rentalModifications[i].returnDate;
    }
    debitcredit(); 
    console.log(actors)
